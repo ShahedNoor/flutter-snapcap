@@ -82,118 +82,98 @@ class _CameraPageState extends State<CameraPage> {
     }
     return SafeArea(
       child: Scaffold(
-        body: Column(
-          children: [
-            Container(
-              height: 50,
-              decoration: const BoxDecoration(color: Colors.black),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.menu_open,
-                      color: Colors.white,
-                    ),
+        body: LayoutBuilder(builder: (BuildContext context, BoxConstraints constranits) {
+          return Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 50,
+                  decoration: const BoxDecoration(color: Colors.black),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.menu_open,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          turnFlashOnOff();
+                          setState(() {
+                            if (isFlashOn) {
+                              controller.setFlashMode(FlashMode.torch);
+                            } else {
+                              controller.setFlashMode(FlashMode.off);
+                            }
+                          });
+                        },
+                        icon: isFlashOn
+                            ? const Icon(
+                          Icons.flash_on,
+                          color: Colors.white,
+                        )
+                            : const Icon(
+                          Icons.flash_off,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.document_scanner,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          _switchCamera();
+                        },
+                        icon: const Icon(
+                          Icons.switch_camera_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          _showCameraSettingPopup(context);
+                        },
+                        icon: const Icon(
+                          Icons.settings,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () {
-                      turnFlashOnOff();
-                      setState(() {
-                        if (isFlashOn) {
-                          controller.setFlashMode(FlashMode.torch);
-                        } else {
-                          controller.setFlashMode(FlashMode.off);
-                        }
-                      });
-                    },
-                    icon: isFlashOn
-                        ? const Icon(
-                            Icons.flash_on,
-                            color: Colors.white,
-                          )
-                        : const Icon(
-                            Icons.flash_off,
-                            color: Colors.white,
-                          ),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.document_scanner,
-                      color: Colors.white,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      _switchCamera();
-                    },
-                    icon: const Icon(
-                      Icons.switch_camera_outlined,
-                      color: Colors.white,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      _showCameraSettingPopup(context);
-                    },
-                    icon: const Icon(
-                      Icons.settings,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            SizedBox(
-              height: MediaQuery.sizeOf(context).height / 1.4,
-              width: MediaQuery.sizeOf(context).width,
-              child: CameraPreview(controller)
-            ),
-            Expanded(
-              child: Container(
-                decoration: const BoxDecoration(color: Colors.black),
-                // Main row
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Image preview container
-                    Container(
-                      height: 55,
-                      width: 55,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: Container(
-                              height: 50,
-                              width: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.grey,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Map button
-                    Container(
-                      child: Icon(
-                        Icons.map_outlined,
-                        color: Colors.white,
-                      ),
-                    ),
-                    // Capture button
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        height: 75,
-                        width: 75,
+              Positioned.fill(
+                top: 50,
+                child: AspectRatio(
+                  aspectRatio: controller.value.aspectRatio,
+                  child: CameraPreview(controller),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 80,
+                  decoration: const BoxDecoration(color: Colors.black),
+                  // Main row
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Image preview container
+                      Container(
+                        height: 55,
+                        width: 55,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(100),
@@ -202,20 +182,10 @@ class _CameraPageState extends State<CameraPage> {
                           children: [
                             Center(
                               child: Container(
-                                height: 68,
-                                width: 68,
+                                height: 50,
+                                width: 50,
                                 decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(100),
-                                ),
-                              ),
-                            ),
-                            Center(
-                              child: Container(
-                                height: 60,
-                                width: 60,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Colors.grey,
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                               ),
@@ -223,27 +193,70 @@ class _CameraPageState extends State<CameraPage> {
                           ],
                         ),
                       ),
-                    ),
-                    // Folder button
-                    Container(
-                      child: Icon(
-                        Icons.folder_copy_outlined,
-                        color: Colors.white,
+                      // Map button
+                      Container(
+                        child: Icon(
+                          Icons.map_outlined,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    // Grid button
-                    Container(
-                      child: Icon(
-                        Icons.grid_view_rounded,
-                        color: Colors.white,
+                      // Capture button
+                      GestureDetector(
+                        onTap: () {},
+                        child: Container(
+                          height: 75,
+                          width: 75,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Container(
+                                  height: 68,
+                                  width: 68,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                ),
+                              ),
+                              Center(
+                                child: Container(
+                                  height: 60,
+                                  width: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(100),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                      // Folder button
+                      Container(
+                        child: Icon(
+                          Icons.folder_copy_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                      // Grid button
+                      Container(
+                        child: Icon(
+                          Icons.grid_view_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        })
       ),
     );
   }
