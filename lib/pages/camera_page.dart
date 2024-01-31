@@ -55,25 +55,64 @@ class _CameraPageState extends State<CameraPage> {
     int newCameraIndex = (currentCameraIndex + 1) % widget.cameras.length;
 
     await controller.dispose();
-    controller = CameraController(widget.cameras[newCameraIndex], ResolutionPreset.max);
+    controller =
+        CameraController(widget.cameras[newCameraIndex], ResolutionPreset.max);
 
     await controller.initialize();
     setState(() {});
   }
+
+  List<ResolutionPreset> resolutionPresets = [
+    ResolutionPreset.max,
+    ResolutionPreset.ultraHigh,
+    ResolutionPreset.high,
+    ResolutionPreset.veryHigh,
+    ResolutionPreset.medium,
+    ResolutionPreset.low,
+  ];
+  int currentResolutionIndex = 0;
 
   Future<void> _changeAspectRatio() async {
-    await controller.dispose();
-
-    controller = CameraController(
-      widget.cameras[0], // You may need to update this to use the selected camera
-      ResolutionPreset.max,
-      imageFormatGroup: ImageFormatGroup.jpeg,
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
     );
 
-    await controller.initialize();
-    setState(() {});
-  }
+    try {
+      await controller.dispose();
 
+      // Introduce a small delay to allow time for disposal
+      await Future.delayed(Duration(milliseconds: 500));
+
+      // Get the next resolution preset
+      ResolutionPreset nextPreset = resolutionPresets[currentResolutionIndex];
+
+      // Update the index for the next tap
+      currentResolutionIndex =
+          (currentResolutionIndex + 1) % resolutionPresets.length;
+
+      controller = CameraController(
+        widget.cameras[0],
+        nextPreset,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+
+      await controller.initialize();
+      setState(() {});
+    } catch (e) {
+      // Handle errors if needed
+      print("Error: $e");
+    } finally {
+      // Close the loading indicator
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,99 +120,131 @@ class _CameraPageState extends State<CameraPage> {
       return Container();
     }
     return SafeArea(
-      child: Scaffold(
-        body: LayoutBuilder(builder: (BuildContext context, BoxConstraints constranits) {
-          return Stack(
-            children: [
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 50,
-                  decoration: const BoxDecoration(color: Colors.black),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.menu_open,
-                          color: Colors.white,
-                        ),
+      child: Scaffold(body: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constranits) {
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 50,
+                decoration: const BoxDecoration(color: Colors.black),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.menu_open,
+                        color: Colors.white,
                       ),
-                      IconButton(
-                        onPressed: () {
-                          turnFlashOnOff();
-                          setState(() {
-                            if (isFlashOn) {
-                              controller.setFlashMode(FlashMode.torch);
-                            } else {
-                              controller.setFlashMode(FlashMode.off);
-                            }
-                          });
-                        },
-                        icon: isFlashOn
-                            ? const Icon(
-                          Icons.flash_on,
-                          color: Colors.white,
-                        )
-                            : const Icon(
-                          Icons.flash_off,
-                          color: Colors.white,
-                        ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        turnFlashOnOff();
+                        setState(() {
+                          if (isFlashOn) {
+                            controller.setFlashMode(FlashMode.torch);
+                          } else {
+                            controller.setFlashMode(FlashMode.off);
+                          }
+                        });
+                      },
+                      icon: isFlashOn
+                          ? const Icon(
+                              Icons.flash_on,
+                              color: Colors.white,
+                            )
+                          : const Icon(
+                              Icons.flash_off,
+                              color: Colors.white,
+                            ),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(
+                        Icons.document_scanner,
+                        color: Colors.white,
                       ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.document_scanner,
-                          color: Colors.white,
-                        ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        _switchCamera();
+                      },
+                      icon: const Icon(
+                        Icons.switch_camera_outlined,
+                        color: Colors.white,
                       ),
-                      IconButton(
-                        onPressed: () {
-                          _switchCamera();
-                        },
-                        icon: const Icon(
-                          Icons.switch_camera_outlined,
-                          color: Colors.white,
-                        ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        _showCameraSettingPopup(context);
+                      },
+                      icon: const Icon(
+                        Icons.settings,
+                        color: Colors.white,
                       ),
-                      IconButton(
-                        onPressed: () {
-                          _showCameraSettingPopup(context);
-                        },
-                        icon: const Icon(
-                          Icons.settings,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Positioned.fill(
-                top: 50,
-                child: AspectRatio(
-                  aspectRatio: controller.value.aspectRatio,
-                  child: CameraPreview(controller),
-                ),
+            ),
+            Positioned.fill(
+              top: 50,
+              child: AspectRatio(
+                aspectRatio: controller.value.aspectRatio,
+                child: CameraPreview(controller),
               ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  height: 80,
-                  decoration: const BoxDecoration(color: Colors.black),
-                  // Main row
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // Image preview container
-                      Container(
-                        height: 55,
-                        width: 55,
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 80,
+                decoration: const BoxDecoration(color: Colors.black),
+                // Main row
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Image preview container
+                    Container(
+                      height: 55,
+                      width: 55,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: Container(
+                              height: 50,
+                              width: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.grey,
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Map button
+                    Container(
+                      child: Icon(
+                        Icons.map_outlined,
+                        color: Colors.white,
+                      ),
+                    ),
+                    // Capture button
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        height: 75,
+                        width: 75,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(100),
@@ -182,10 +253,20 @@ class _CameraPageState extends State<CameraPage> {
                           children: [
                             Center(
                               child: Container(
-                                height: 50,
-                                width: 50,
+                                height: 68,
+                                width: 68,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey,
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(100),
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Container(
+                                height: 60,
+                                width: 60,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                               ),
@@ -193,71 +274,28 @@ class _CameraPageState extends State<CameraPage> {
                           ],
                         ),
                       ),
-                      // Map button
-                      Container(
-                        child: Icon(
-                          Icons.map_outlined,
-                          color: Colors.white,
-                        ),
+                    ),
+                    // Folder button
+                    Container(
+                      child: Icon(
+                        Icons.folder_copy_outlined,
+                        color: Colors.white,
                       ),
-                      // Capture button
-                      GestureDetector(
-                        onTap: () {},
-                        child: Container(
-                          height: 75,
-                          width: 75,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Container(
-                                  height: 68,
-                                  width: 68,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black,
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                ),
-                              ),
-                              Center(
-                                child: Container(
-                                  height: 60,
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(100),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    ),
+                    // Grid button
+                    Container(
+                      child: Icon(
+                        Icons.grid_view_rounded,
+                        color: Colors.white,
                       ),
-                      // Folder button
-                      Container(
-                        child: Icon(
-                          Icons.folder_copy_outlined,
-                          color: Colors.white,
-                        ),
-                      ),
-                      // Grid button
-                      Container(
-                        child: Icon(
-                          Icons.grid_view_rounded,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          );
-        })
-      ),
+            ),
+          ],
+        );
+      })),
     );
   }
 
