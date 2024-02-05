@@ -15,7 +15,7 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void initState() {
     super.initState();
-    controller = CameraController(widget.cameras[0], ResolutionPreset.max);
+    controller = CameraController(widget.cameras[0], ResolutionPreset.low);
     controller.initialize().then((_) {
       if (!mounted) {
         return;
@@ -193,9 +193,12 @@ class _CameraPageState extends State<CameraPage> {
             ),
             Positioned.fill(
               top: 50,
-              child: AspectRatio(
-                aspectRatio: controller.value.aspectRatio,
-                child: CameraPreview(controller),
+              child: Container(
+                constraints: const BoxConstraints.expand(),
+                child: AspectRatio(
+                  aspectRatio: controller.value.aspectRatio,
+                  child: CameraPreview(controller),
+                ),
               ),
             ),
             Positioned(
@@ -303,6 +306,32 @@ class _CameraPageState extends State<CameraPage> {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
+        String currentResolution = controller.resolutionPreset.name;
+        String low = "low";
+        String medium = "medium";
+        String high = "high";
+        String veryHigh = "veryHigh";
+        String ultraHigh = "ultraHigh";
+        String max = "max";
+
+        String getRatioText() {
+          if (currentResolution == low) {
+            return "4:3";
+          } else if (currentResolution == medium) {
+            return "4:3";
+          } else if (currentResolution == high) {
+            return "16:9";
+          } else if (currentResolution == veryHigh) {
+            return "16:9";
+          } else if (currentResolution == ultraHigh) {
+            return "16:9";
+          } else if (currentResolution == max) {
+            return "16:9";
+          } else {
+            return "";
+          }
+        }
+
         return Column(
           children: [
             Container(
@@ -319,10 +348,10 @@ class _CameraPageState extends State<CameraPage> {
                       GestureDetector(
                         onTap: () {
                           _changeAspectRatio();
-                          print(_changeAspectRatio());
+                          print("Preset: ${controller.resolutionPreset.name}");
                         },
                         child: Container(
-                          child: const Column(
+                          child: Column(
                             children: [
                               Icon(
                                 Icons.aspect_ratio,
@@ -333,7 +362,8 @@ class _CameraPageState extends State<CameraPage> {
                                   color: Colors.white,
                                   fontSize: 10,
                                 ),
-                                child: Text("Ratio(16:09, 2.07MP)"),
+                                child: Text(
+                                    "Ratio(${getRatioText()}, 2.07MP)"),
                               )
                             ],
                           ),
